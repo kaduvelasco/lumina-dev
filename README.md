@@ -1,4 +1,4 @@
-```markdown
+````markdown
 # 💡 LuminaDev — Elite Workstation Setup
 
 > Automação de workstation Linux para desenvolvedores PHP/Moodle com ergonomia JetBrains e proteção nativa para uso de IA.
@@ -60,32 +60,31 @@ O `utils.sh` provê detecção de distro, funções de verificação e instalaç
 ---
 
 ## 📂 Estrutura do projeto
-```
 
+```text
 lumina-dev/
-├── install.sh # Menu principal de instalação
-├── uninstall.sh # Menu de remoção seletiva
-├── .aiexclude # Modelo de bloqueio para ferramentas de IA
-├── .gitignore # Padrão para projetos PHP/Moodle
+├── install.sh                  # Menu principal de instalação
+├── uninstall.sh                # Menu de remoção seletiva
+├── .aiexclude                  # Modelo de bloqueio para ferramentas de IA
+├── .gitignore                  # Padrão para projetos PHP/Moodle
 │
-├── scripts/ # Utilitários e instaladores de CLI
-│ ├── utils.sh # Módulo central: cores, distro, idempotência
-│ ├── fonts-install.sh # Instalação da JetBrains Mono
-│ ├── git-manager.sh # Core do comando global 'mygit'
-│ ├── claude-install.sh # Instalação do Claude Code CLI
-│ └── gemini-install.sh # Instalação do Gemini Code Assist CLI
+├── scripts/                    # Utilitários e instaladores de CLI
+│   ├── utils.sh                # Módulo central: cores, distro, idempotência
+│   ├── fonts-install.sh        # Instalação da JetBrains Mono
+│   ├── git-manager.sh          # Core do comando global 'mygit'
+│   ├── claude-install.sh       # Instalação do Claude Code CLI
+│   └── gemini-install.sh       # Instalação do Gemini Code Assist CLI
 │
-├── ides/ # Instaladores de IDEs e editores
-│ ├── zed-install.sh # Zed Editor (uso geral)
-│ ├── vscodium-install.sh # VSCodium — Gemini Edition
-│ ├── vscode-install.sh # VS Code — Claude Edition
-│ └── phpstorm-install.sh # Auxiliar de instalação do PHPStorm (.tar.gz)
+├── ides/                       # Instaladores de IDEs e editores
+│   ├── zed-install.sh          # Zed Editor (uso geral)
+│   ├── vscodium-install.sh     # VSCodium — Gemini Edition
+│   ├── vscode-install.sh       # VS Code — Claude Edition
+│   └── phpstorm-install.sh     # Auxiliar de instalação do PHPStorm (.tar.gz)
 │
 └── .github/
-└── workflows/
-└── lint.yml # CI: ShellCheck + Smoke Test
-
-````
+    └── workflows/
+        └── lint.yml            # CI: ShellCheck + Smoke Test
+```
 
 ---
 
@@ -107,7 +106,7 @@ Para o instalador do PHPStorm, é necessário baixar o pacote `.tar.gz` manualme
 ```bash
 git clone https://github.com/kaduvelasco/lumina-dev.git
 cd lumina-dev
-````
+```
 
 **2. Dê permissão ao instalador:**
 
@@ -352,3 +351,4 @@ Este projeto está licenciado sob a [GPL-3.0 License](LICENSE).
 ---
 
 Feito com ❤️ e IA por [Kadu Velasco](https://github.com/kaduvelasco)
+````
