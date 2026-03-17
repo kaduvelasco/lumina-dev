@@ -1,4 +1,3 @@
-````markdown
 # 💡 LuminaDev — Elite Workstation Setup
 
 > Automação de workstation Linux para desenvolvedores PHP/Moodle com ergonomia JetBrains e proteção nativa para uso de IA.
@@ -351,4 +350,7 @@ Este projeto está licenciado sob a [GPL-3.0 License](LICENSE).
 ---
 
 Feito com ❤️ e IA por [Kadu Velasco](https://github.com/kaduvelasco)
-````
+
+```
+
+```
