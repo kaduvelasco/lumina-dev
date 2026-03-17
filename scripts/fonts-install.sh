@@ -1,43 +1,99 @@
 #!/bin/bash
 
-BLUE='\033[0;34m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-RED='\033[0;31m'
-NC='\033[0m'
+# =============================================================================
+# fonts-install.sh — Instalação da fonte JetBrains Mono
+#
+# DESCRIÇÃO   : Baixa e instala a JetBrains Mono no diretório de fontes do
+#               usuário atual e atualiza o cache de fontes do sistema.
+# DISTROS     : Qualquer distro Linux com curl, unzip e fontconfig
+# IDEMPOTENTE : Sim — verifica se a fonte já está instalada antes de baixar
+# USO DIRETO  : bash scripts/fonts-install.sh
+# VIA MENU    : Opção 1 do install.sh
+# =============================================================================
 
-install_fonts() {
-    # Verificar dependências
+source "$(dirname "$0")/../scripts/utils.sh"
+
+FONT_NAME="JetBrains Mono"
+FONT_VERSION="2.304"
+FONT_URL="https://github.com/JetBrains/JetBrainsMono/releases/download/v${FONT_VERSION}/JetBrainsMono-${FONT_VERSION}.zip"
+FONT_DIR="$HOME/.local/share/fonts"
+FONT_CHECK="JetBrainsMono-Regular.ttf"
+
+# =============================================================================
+# Verifica dependências necessárias
+# =============================================================================
+check_dependencies() {
+    local missing=()
+
     for cmd in curl unzip fc-cache; do
-        if ! command -v $cmd &> /dev/null; then
-            echo -e "${RED}❌ Erro: O comando '$cmd' não está instalado.${NC}"
-            return 1
+        if ! is_installed_cmd "$cmd"; then
+            missing+=("$cmd")
         fi
     done
 
-    echo -e "${YELLOW}Iniciando instalação da fonte JetBrains Mono...${NC}"
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        echo -e "${AMARELO}📥 Instalando dependências ausentes: ${missing[*]}${RESET}"
+        detect_pkg_manager
+        for pkg in "${missing[@]}"; do
+            case "$pkg" in
+                fc-cache) ensure_pkg "fontconfig" ;;
+                *)        ensure_pkg "$pkg" ;;
+            esac
+        done
+    fi
+}
 
-    FONT_DIR="$HOME/.local/share/fonts"
+# =============================================================================
+# Instalação da fonte
+# =============================================================================
+install_fonts() {
+    # --- Idempotência: verifica se a fonte já está instalada ---
+    if [[ -f "$FONT_DIR/$FONT_CHECK" ]]; then
+        echo -e "${VERDE}✅ ${FONT_NAME} já está instalada em ${FONT_DIR}.${RESET}"
+        read -rp "Deseja reinstalar / atualizar para a v${FONT_VERSION}? [s/N]: " confirm
+        [[ ! "$confirm" =~ ^[sS]$ ]] && return 0
+    fi
+
+    check_dependencies
+
+    echo -e "${AMARELO}🔤 Iniciando instalação da fonte ${FONT_NAME} v${FONT_VERSION}...${RESET}"
+
     mkdir -p "$FONT_DIR"
 
-    echo -e "${BLUE}Baixando fontes oficiais...${NC}"
+    local TEMP_DIR
     TEMP_DIR=$(mktemp -d)
-    # Versão mais recente estável
-    URL="https://github.com/JetBrains/JetBrainsMono/releases/download/v2.304/JetBrainsMono-2.304.zip"
 
-    if curl -L "$URL" -o "$TEMP_DIR/fonts.zip"; then
-        unzip -q "$TEMP_DIR/fonts.zip" -d "$TEMP_DIR"
+    # Garante limpeza do diretório temporário ao sair (erro ou sucesso)
+    trap 'rm -rf "$TEMP_DIR"' EXIT
 
-        # Copia apenas os TTFs (evita arquivos desnecessários de documentação)
-        find "$TEMP_DIR" -name "*.ttf" -exec cp -v {} "$FONT_DIR/" \; | wc -l | xargs -I {} echo -e "${GREEN}Copiadas {} fontes para $FONT_DIR${NC}"
-
-        echo -e "${YELLOW}Atualizando cache de fontes do sistema...${NC}"
-        fc-cache -f
-        echo -e "${GREEN}✅ Fontes instaladas com sucesso!${NC}"
-    else
-        echo -e "${RED}❌ Erro ao baixar fontes. Verifique sua conexão.${NC}"
+    echo -e "${AZUL}📥 Baixando fontes oficiais...${RESET}"
+    if ! curl -fsSL "$FONT_URL" -o "$TEMP_DIR/fonts.zip"; then
+        echo -e "${VERMELHO}❌ Erro ao baixar as fontes. Verifique sua conexão.${RESET}"
+        return 1
     fi
-    rm -rf "$TEMP_DIR"
+
+    echo -e "${AZUL}📦 Extraindo arquivos...${RESET}"
+    if ! unzip -q "$TEMP_DIR/fonts.zip" -d "$TEMP_DIR"; then
+        echo -e "${VERMELHO}❌ Erro ao extrair o arquivo zip.${RESET}"
+        return 1
+    fi
+
+    # Copia apenas os TTFs (evita arquivos de documentação e webfonts)
+    local count
+    count=$(find "$TEMP_DIR" -name "*.ttf" | wc -l)
+
+    if [[ "$count" -eq 0 ]]; then
+        echo -e "${VERMELHO}❌ Nenhum arquivo .ttf encontrado no pacote baixado.${RESET}"
+        return 1
+    fi
+
+    find "$TEMP_DIR" -name "*.ttf" -exec cp {} "$FONT_DIR/" \;
+    echo -e "${VERDE}📁 ${count} arquivos copiados para ${FONT_DIR}.${RESET}"
+
+    echo -e "${AMARELO}🔄 Atualizando cache de fontes do sistema...${RESET}"
+    fc-cache -f
+
+    echo -e "${VERDE}✅ ${FONT_NAME} v${FONT_VERSION} instalada com sucesso!${RESET}"
 }
 
 install_fonts
