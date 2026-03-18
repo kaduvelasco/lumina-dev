@@ -146,7 +146,8 @@ configure_marketplace() {
     fi
 
     # Backup do product.json original
-    local backup="${product_json}.bak.$(date +%Y%m%d%H%M%S)"
+    local backup
+    backup="${product_json}.bak.$(date +%Y%m%d%H%M%S)"
     sudo cp "$product_json" "$backup"
     echo -e "${AZUL}💾 Backup salvo em: ${backup}${RESET}"
 
