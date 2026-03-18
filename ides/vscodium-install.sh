@@ -70,7 +70,6 @@ install_vscodium() {
 
     case "$PKG_MANAGER" in
         apt)
-            # Adiciona chave GPG apenas se ainda não existir
             local keyring="/usr/share/keyrings/vscodium-archive-keyring.gpg"
             if [[ ! -f "$keyring" ]]; then
                 wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg \
@@ -78,7 +77,6 @@ install_vscodium() {
                     | sudo dd of="$keyring" status=none
             fi
 
-            # Adiciona source list apenas se ainda não existir
             local sources="/etc/apt/sources.list.d/vscodium.sources"
             if [[ ! -f "$sources" ]]; then
                 printf 'Types: deb\nURIs: https://download.vscodium.com/debs\nSuites: vscodium\nComponents: main\nArchitectures: amd64 arm64\nSigned-by: /usr/share/keyrings/vscodium-archive-keyring.gpg\n' \
@@ -97,7 +95,6 @@ install_vscodium() {
             ensure_pkg "codium"
             ;;
         pacman)
-            # No Arch, VSCodium está no AUR
             if is_installed_cmd "yay"; then
                 yay -S --noconfirm vscodium-bin
             elif is_installed_cmd "paru"; then
@@ -115,7 +112,72 @@ install_vscodium() {
         exit 1
     fi
 
+    # --- Configura o Microsoft Marketplace ---
+    configure_marketplace
+
     echo -e "${VERDE}✅ VSCodium instalado com sucesso!${RESET}"
+}
+
+# =============================================================================
+# Configura o Microsoft Marketplace no VSCodium
+# =============================================================================
+configure_marketplace() {
+    echo -e "${AZUL}🔌 Configurando acesso ao Microsoft Marketplace...${RESET}"
+
+    # Detecta o diretório do product.json conforme a distro
+    local product_json=""
+    local candidates=(
+        "/usr/share/codium/resources/app/product.json"
+        "/opt/vscodium-bin/resources/app/product.json"
+        "/usr/lib/codium/resources/app/product.json"
+    )
+
+    for candidate in "${candidates[@]}"; do
+        if [[ -f "$candidate" ]]; then
+            product_json="$candidate"
+            break
+        fi
+    done
+
+    if [[ -z "$product_json" ]]; then
+        echo -e "${VERMELHO}❌ product.json não encontrado. Marketplace não configurado.${RESET}"
+        echo -e "${AMARELO}   Localize o arquivo manualmente e adicione a configuração de extensionsGallery.${RESET}"
+        return 1
+    fi
+
+    # Backup do product.json original
+    local backup="${product_json}.bak.$(date +%Y%m%d%H%M%S)"
+    sudo cp "$product_json" "$backup"
+    echo -e "${AZUL}💾 Backup salvo em: ${backup}${RESET}"
+
+    # Injeta a configuração do Marketplace usando Python (disponível em todas as distros)
+    sudo python3 - <<PYEOF
+import json, sys
+
+path = "$product_json"
+
+with open(path, 'r') as f:
+    data = json.load(f)
+
+data['extensionsGallery'] = {
+    "serviceUrl": "https://marketplace.visualstudio.com/_apis/public/gallery",
+    "cacheUrl": "https://vscode.blob.core.windows.net/gallery/index",
+    "itemUrl": "https://marketplace.visualstudio.com/items"
+}
+
+with open(path, 'w') as f:
+    json.dump(data, f, indent=2)
+
+print("OK")
+PYEOF
+
+    if [[ $? -eq 0 ]]; then
+        echo -e "${VERDE}✅ Microsoft Marketplace configurado em ${product_json}.${RESET}"
+    else
+        echo -e "${VERMELHO}❌ Falha ao configurar o Marketplace. Restaurando backup...${RESET}"
+        sudo cp "$backup" "$product_json"
+        return 1
+    fi
 }
 
 # =============================================================================
