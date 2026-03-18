@@ -145,6 +145,84 @@ install_git_libsecret() {
 }
 
 # =============================================================================
+# OPÇÃO 6 — Configurar Gemini Code Assist
+# =============================================================================
+configure_gemini() {
+    echo -e "\n${AZUL}🔑 Configuração do Gemini Code Assist${RESET}"
+
+    # --- Verifica se o Gemini CLI está instalado ---
+    if ! is_installed_cmd "gemini"; then
+        echo -e "${VERMELHO}❌ Gemini CLI não encontrado. Execute a opção 5 primeiro.${RESET}"
+        return 1
+    fi
+
+    # --- Solicita a API Key ---
+    echo -e "${AMARELO}📌 Obtenha sua chave em: ${AZUL}https://aistudio.google.com/apikey${RESET}"
+    echo -e "${AMARELO}   Crie uma conta Google, acesse o link acima e clique em 'Create API Key'.${RESET}"
+    read -rp "Cole sua GOOGLE_API_KEY aqui: " api_key
+
+    if [[ -z "$api_key" ]]; then
+        echo -e "${VERMELHO}❌ Chave não informada. Configuração abortada.${RESET}"
+        return 1
+    fi
+
+    # --- Exporta para a sessão atual ---
+    export GOOGLE_API_KEY="$api_key"
+
+    # --- Persiste no .bashrc (evita duplicatas) ---
+    local bashrc="$HOME/.bashrc"
+    local export_line="export GOOGLE_API_KEY='${api_key}'"
+
+    if grep -q "GOOGLE_API_KEY" "$bashrc" 2>/dev/null; then
+        # Atualiza a linha existente
+        sed -i "s|.*GOOGLE_API_KEY.*|${export_line}|" "$bashrc"
+        echo -e "${AZUL}🔄 GOOGLE_API_KEY atualizada no ${bashrc}.${RESET}"
+    else
+        echo "$export_line" >> "$bashrc"
+        echo -e "${VERDE}✅ GOOGLE_API_KEY adicionada ao ${bashrc}.${RESET}"
+    fi
+
+    # --- Recarrega o .bashrc ---
+    # shellcheck source=/dev/null
+    source "$bashrc"
+    echo -e "${VERDE}✅ .bashrc recarregado.${RESET}"
+
+    # --- Verifica o Gemini CLI ---
+    echo -e "${AZUL}🔍 Verificando instalação do Gemini CLI...${RESET}"
+
+    local version_output
+    version_output=$(gemini --version 2>&1)
+    local exit_code=$?
+
+    if [[ $exit_code -ne 0 ]] || echo "$version_output" | grep -q "ENOENT\|Cannot read properties"; then
+        echo -e "${AMARELO}⚠️  Detectado problema no diretório de configuração. Aplicando correção...${RESET}"
+
+        mkdir -p "$HOME/.gemini"
+        if [[ ! -f "$HOME/.gemini/projects.json" ]] || ! grep -q "projects" "$HOME/.gemini/projects.json" 2>/dev/null; then
+            echo '{"projects":[]}' > "$HOME/.gemini/projects.json"
+            echo -e "${VERDE}✅ projects.json criado corretamente.${RESET}"
+        fi
+
+        # Testa novamente após a correção
+        version_output=$(gemini --version 2>&1)
+        if echo "$version_output" | grep -q "^[0-9]"; then
+            echo -e "${VERDE}✅ Gemini CLI funcionando! Versão: ${version_output}${RESET}"
+        else
+            echo -e "${VERMELHO}❌ Problema persistente. Tente reinstalar via opção 5.${RESET}"
+            return 1
+        fi
+    else
+        echo -e "${VERDE}✅ Gemini CLI funcionando! Versão: ${version_output}${RESET}"
+    fi
+
+    echo -e "\n${AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+    echo -e "${AMARELO}  Próximos passos:${RESET}"
+    echo -e "  1. Abra um novo terminal ou execute: ${VERDE}source ~/.bashrc${RESET}"
+    echo -e "  2. Teste com: ${VERDE}gemini${RESET}"
+    echo -e "${AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}\n"
+}
+
+# =============================================================================
 # MENU PRINCIPAL
 # =============================================================================
 while true; do
@@ -154,26 +232,28 @@ while true; do
     echo -e "  3. Instalar Git Manager (mygit)"
     echo -e "  4. Instalar Claude Code (CLI)"
     echo -e "  5. Instalar Gemini Code Assist (CLI)"
-    echo -e "  6. Instalar Zed Editor (Geral)"
-    echo -e "  7. Instalar VSCodium (Gemini Edition)"
-    echo -e "  8. Instalar VSCode (Claude Edition)"
-    echo -e "  9. Auxiliar Instalação PHPStorm (.tar.gz)"
+    echo -e "  6. Configurar Gemini Code Assist"
+    echo -e "  7. Instalar Zed Editor (Geral)"
+    echo -e "  8. Instalar VSCodium (Gemini Edition)"
+    echo -e "  9. Instalar VSCode (Claude Edition)"
+    echo -e "  10. Auxiliar Instalação PHPStorm (.tar.gz)"
     echo -e "  0. Sair"
     echo -e "${AZUL}------------------------------------------------------${RESET}"
     read -rp "Escolha uma opção: " OPTION
 
     case $OPTION in
-        1) run_script "scripts" "fonts-install.sh" ;;
-        2) install_git_libsecret ;;
-        3) install_mygit ;;
-        4) run_script "scripts" "claude-install.sh" ;;
-        5) run_script "scripts" "gemini-install.sh" ;;
-        6) run_script "ides" "zed-install.sh" ;;
-        7) run_script "ides" "vscodium-install.sh" ;;
-        8) run_script "ides" "vscode-install.sh" ;;
-        9) run_script "ides" "phpstorm-install.sh" ;;
-        0) echo -e "${VERDE}Saindo...${RESET}"; exit 0 ;;
-        *) echo -e "${VERMELHO}Opção inválida!${RESET}"; sleep 1 ;;
+        1)  run_script "scripts" "fonts-install.sh" ;;
+        2)  install_git_libsecret ;;
+        3)  install_mygit ;;
+        4)  run_script "scripts" "claude-install.sh" ;;
+        5)  run_script "scripts" "gemini-install.sh" ;;
+        6)  configure_gemini ;;
+        7)  run_script "ides" "zed-install.sh" ;;
+        8)  run_script "ides" "vscodium-install.sh" ;;
+        9)  run_script "ides" "vscode-install.sh" ;;
+        10) run_script "ides" "phpstorm-install.sh" ;;
+        0)  echo -e "${VERDE}Saindo...${RESET}"; exit 0 ;;
+        *)  echo -e "${VERMELHO}Opção inválida!${RESET}"; sleep 1 ;;
     esac
 
     echo -e "\n${AZUL}Pressione Enter para voltar ao menu...${RESET}"
