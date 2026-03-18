@@ -91,7 +91,7 @@ install_gemini() {
 
     echo -e "${AZUL}🚀 Instalando ${GEMINI_PKG} globalmente...${RESET}"
 
-    if sudo npm install -g "$GEMINI_PKG"; then
+    if sudo env PATH="$PATH" npm install -g "$GEMINI_PKG"; then
         echo -e "${VERDE}✅ Gemini CLI instalado com sucesso!${RESET}"
         echo -e "\n${AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
         echo -e "${AMARELO}  Próximos passos:${RESET}"
