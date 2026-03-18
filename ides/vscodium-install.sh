@@ -71,16 +71,38 @@ install_vscodium() {
     case "$PKG_MANAGER" in
         apt)
             local keyring="/usr/share/keyrings/vscodium-archive-keyring.gpg"
+            local sources_deb="/etc/apt/sources.list.d/vscodium.sources"
+            local sources_list="/etc/apt/sources.list.d/vscodium.list"
+
+            # --- Remove arquivos conflitantes antes de criar o novo ---
+            # Evita erro "Conflicting values set for option Signed-By"
+            if [[ -f "$sources_list" ]]; then
+                echo -e "${AMARELO}⚠️  Arquivo conflitante detectado: ${sources_list}. Removendo...${RESET}"
+                sudo rm -f "$sources_list"
+            fi
+
+            # Verifica se já existe algum repositório VSCodium configurado em outro arquivo
+            local existing_vscodium_repo
+            existing_vscodium_repo=$(grep -rl "download.vscodium.com" \
+                /etc/apt/sources.list.d/ 2>/dev/null | grep -v "$sources_deb" | head -1)
+
+            if [[ -n "$existing_vscodium_repo" ]]; then
+                echo -e "${AMARELO}⚠️  Repositório VSCodium já configurado em: ${existing_vscodium_repo}${RESET}"
+                echo -e "${AMARELO}   Removendo para evitar conflito de chaves GPG...${RESET}"
+                sudo rm -f "$existing_vscodium_repo"
+            fi
+
+            # Adiciona chave GPG apenas se ainda não existir
             if [[ ! -f "$keyring" ]]; then
                 wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg \
                     | gpg --dearmor \
                     | sudo dd of="$keyring" status=none
             fi
 
-            local sources="/etc/apt/sources.list.d/vscodium.sources"
-            if [[ ! -f "$sources" ]]; then
+            # Adiciona source list apenas se ainda não existir
+            if [[ ! -f "$sources_deb" ]]; then
                 printf 'Types: deb\nURIs: https://download.vscodium.com/debs\nSuites: vscodium\nComponents: main\nArchitectures: amd64 arm64\nSigned-by: /usr/share/keyrings/vscodium-archive-keyring.gpg\n' \
-                    | sudo tee "$sources" > /dev/null
+                    | sudo tee "$sources_deb" > /dev/null
             fi
 
             sudo apt-get update -qq

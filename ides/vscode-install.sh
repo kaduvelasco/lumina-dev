@@ -57,7 +57,6 @@ install_dependencies() {
 # Instalação do VS Code
 # =============================================================================
 install_vscode() {
-    # --- Idempotência: verifica se o VS Code já está instalado ---
     if is_installed_cmd "$CODE_CMD"; then
         local current_version
         current_version=$(code --version 2>/dev/null | head -1 || echo "versão desconhecida")
@@ -71,16 +70,38 @@ install_vscode() {
     case "$PKG_MANAGER" in
         apt)
             local keyring="/usr/share/keyrings/microsoft-archive-keyring.gpg"
+            local sources_list="/etc/apt/sources.list.d/vscode.list"
+            local sources_deb="/etc/apt/sources.list.d/vscode.sources"
+
+            # --- Remove arquivos conflitantes antes de criar o novo ---
+            # Evita erro "Conflicting values set for option Signed-By"
+            if [[ -f "$sources_deb" ]]; then
+                echo -e "${AMARELO}⚠️  Arquivo conflitante detectado: ${sources_deb}. Removendo...${RESET}"
+                sudo rm -f "$sources_deb"
+            fi
+
+            # Verifica se já existe algum repositório da Microsoft configurado
+            local existing_ms_repo
+            existing_ms_repo=$(grep -rl "packages.microsoft.com/repos/code" \
+                /etc/apt/sources.list.d/ 2>/dev/null | head -1)
+
+            if [[ -n "$existing_ms_repo" && "$existing_ms_repo" != "$sources_list" ]]; then
+                echo -e "${AMARELO}⚠️  Repositório Microsoft já configurado em: ${existing_ms_repo}${RESET}"
+                echo -e "${AMARELO}   Removendo para evitar conflito de chaves GPG...${RESET}"
+                sudo rm -f "$existing_ms_repo"
+            fi
+
+            # Adiciona chave GPG apenas se ainda não existir
             if [[ ! -f "$keyring" ]]; then
                 wget -qO - https://packages.microsoft.com/keys/microsoft.asc \
                     | gpg --dearmor \
                     | sudo dd of="$keyring" status=none
             fi
 
-            local sources="/etc/apt/sources.list.d/vscode.list"
-            if [[ ! -f "$sources" ]]; then
+            # Adiciona source list apenas se ainda não existir
+            if [[ ! -f "$sources_list" ]]; then
                 echo "deb [arch=amd64,arm64 signed-by=$keyring] https://packages.microsoft.com/repos/code stable main" \
-                    | sudo tee "$sources" > /dev/null
+                    | sudo tee "$sources_list" > /dev/null
             fi
 
             sudo apt-get update -qq
