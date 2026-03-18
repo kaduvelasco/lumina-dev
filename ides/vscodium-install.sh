@@ -196,7 +196,6 @@ install_extensions() {
         "bmewburn.vscode-intelephense-client"
         "MehediDracula.php-namespace-resolver"
         "imgildev.vscode-moodle-snippets"
-        "LMSCloud.mdlcode"
         "junstyle.php-cs-fixer"
         "dawhite.mustache"
         # Docker & Remote
@@ -287,8 +286,11 @@ apply_settings() {
     "[php]": {
         "editor.defaultFormatter": "junstyle.php-cs-fixer"
     },
+    "php.validate.enable": false,
     "php.suggest.basic": false,
     "intelephense.completion.triggerParameterHints": true,
+    "intelephense.diagnostics.enable": true,
+    "intelephense.environment.phpVersion": "8.2",
     "terminal.integrated.copyOnSelection": true,
     "workbench.startupEditor": "none",
     "docker.commands.build": "docker build",

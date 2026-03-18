@@ -123,18 +123,19 @@ O menu principal será exibido. As permissões dos demais scripts são sincroniz
 
 ### Opções do menu
 
-| Opção | Descrição                          |
-| ----- | ---------------------------------- |
-| `1`   | Instalar fontes JetBrains Mono     |
-| `2`   | Instalar Git e compilar libsecret  |
-| `3`   | Instalar Git Manager (`mygit`)     |
-| `4`   | Instalar Claude Code CLI           |
-| `5`   | Instalar Gemini Code Assist CLI    |
-| `6`   | Instalar Zed Editor                |
-| `7`   | Instalar VSCodium (Gemini Edition) |
-| `8`   | Instalar VS Code (Claude Edition)  |
-| `9`   | Auxiliar de instalação do PHPStorm |
-| `0`   | Sair                               |
+| Opção | Descrição                               |
+| ----- | --------------------------------------- |
+| `1`   | Instalar fontes JetBrains Mono          |
+| `2`   | Instalar Git e compilar libsecret       |
+| `3`   | Instalar Git Manager (`mygit`)          |
+| `4`   | Instalar Claude Code CLI                |
+| `5`   | Instalar Gemini Code Assist CLI         |
+| `6`   | Configurar Gemini Code Assist (API Key) |
+| `7`   | Instalar Zed Editor                     |
+| `8`   | Instalar VSCodium (Gemini Edition)      |
+| `9`   | Instalar VS Code (Claude Edition)       |
+| `10`  | Auxiliar de instalação do PHPStorm      |
+| `0`   | Sair                                    |
 
 ### Ordem recomendada de instalação
 
@@ -142,8 +143,10 @@ O menu principal será exibido. As permissões dos demais scripts são sincroniz
 1 → Fontes
 2 → Git e libsecret
 3 → mygit
-4 ou 5 → CLI de IA de sua preferência
-6, 7, 8 ou 9 → IDE de sua preferência
+4 → Claude Code CLI
+5 → Gemini Code Assist CLI
+6 → Configurar Gemini (API Key)
+7, 8, 9 ou 10 → IDE de sua preferência
 ```
 
 ---
@@ -230,13 +233,7 @@ Instala o **Claude Code CLI** via script oficial da Anthropic (`claude.ai/instal
 
 Instala o **Gemini Code Assist CLI** via npm (`@google/gemini-cli`). Verifica e instala o Node.js LTS (v18+) se necessário.
 
-**Pós-instalação:** adicione ao seu shell:
-
-```bash
-export GOOGLE_API_KEY='sua_chave_aqui'
-```
-
-Gere sua chave em [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
+**Pós-instalação:** use a opção `6` do menu para configurar sua API Key. Gere sua chave em [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
 
 ---
 
@@ -248,12 +245,13 @@ Instala o **Zed Editor** via script oficial (`zed.dev/install.sh`) e aplica conf
 
 ### `ides/vscodium-install.sh` — Gemini Edition
 
-Instala o **VSCodium** via repositório oficial e configura o ambiente completo:
+Instala o **VSCodium** via repositório oficial, configura o acesso ao Microsoft Marketplace e instala o ambiente completo:
 
-- Extensão: `google.gemini-code-assist`
-- Extensões PHP/Moodle: Intelephense, PHP CS Fixer, Moodle Snippets
-- Extensões Docker: ms-azuretools.vscode-docker, remote-containers
+- Extensão de IA: `Google.geminicodeassist`
+- Extensões PHP/Moodle: Intelephense, PHP CS Fixer, PHP Namespace Resolver, Moodle Snippets, Mustache
+- Extensões Docker: vscode-docker, remote-containers
 - Interface: JetBrains Mono, tema JetBrains New UI, keybindings IntelliJ
+- PHP configurado para ambientes Docker via Intelephense (sem binário local)
 
 ---
 
@@ -261,10 +259,11 @@ Instala o **VSCodium** via repositório oficial e configura o ambiente completo:
 
 Instala o **VS Code** via repositório oficial da Microsoft e configura o ambiente completo:
 
-- Extensão: `anthropic.claude-code`
+- Extensão de IA: `anthropic.claude-code`
 - Extensões PHP/Moodle: idênticas ao VSCodium Edition
 - Extensões Docker: idênticas ao VSCodium Edition
 - Interface: idêntica ao VSCodium Edition
+- PHP configurado para ambientes Docker via Intelephense (sem binário local)
 
 ---
 
