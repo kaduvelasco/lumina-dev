@@ -198,7 +198,8 @@ apply_settings() {
         fi
 
         # Backup da configuração anterior
-        local backup="${CONFIG_FILE}.bak.$(date +%Y%m%d%H%M%S)"
+        local backup
+        backup="${CONFIG_FILE}.bak.$(date +%Y%m%d%H%M%S)"
         cp "$CONFIG_FILE" "$backup"
         echo -e "${AZUL}💾 Backup salvo em: ${backup}${RESET}"
     fi

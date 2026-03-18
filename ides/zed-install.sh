@@ -110,7 +110,8 @@ apply_settings() {
         fi
 
         # Backup da configuração anterior
-        local backup="${ZED_CONFIG_FILE}.bak.$(date +%Y%m%d%H%M%S)"
+        local backup
+        backup="${ZED_CONFIG_FILE}.bak.$(date +%Y%m%d%H%M%S)"
         cp "$ZED_CONFIG_FILE" "$backup"
         echo -e "${AZUL}💾 Backup salvo em: ${backup}${RESET}"
     fi
