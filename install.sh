@@ -134,7 +134,7 @@ install_git_libsecret() {
             echo -e "${AMARELO}🛠️  Compilando o helper do libsecret para o sistema...${RESET}"
             cd /usr/share/doc/git/contrib/credential/libsecret || exit 1
             sudo make
-            cd - > /dev/null
+            cd - > /dev/null || return 1
             echo -e "${VERDE}✅ Compilação concluída.${RESET}"
         else
             echo -e "${VERDE}✅ libsecret já está compilado e pronto para uso.${RESET}"
