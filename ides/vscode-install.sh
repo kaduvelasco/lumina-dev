@@ -126,11 +126,11 @@ install_extensions() {
         "anthropic.claude-code"
         # PHP / Moodle
         "bmewburn.vscode-intelephense-client"
-        "mehedi-hassan.php-namespace-resolver"
+        "MehediDracula.php-namespace-resolver"
         "imgildev.vscode-moodle-snippets"
-        "fischerman.mdlcode"
+        "LMSCloud.mdlcode"
         "junstyle.php-cs-fixer"
-        "terryfly.vscode-mustache"
+        "dawhite.mustache"
         # Docker & Remote
         "ms-azuretools.vscode-docker"
         "ms-vscode-remote.remote-containers"
@@ -225,7 +225,8 @@ apply_settings() {
     "docker.commands.run": "docker run",
     "docker.commands.composeUp": "docker-compose up -d",
     "editor.minimap.enabled": false,
-    "claude.autoStart": true
+    "claude.autoStart": true,
+    "claude.inlineSuggest.enable": true
 }
 EOF
 

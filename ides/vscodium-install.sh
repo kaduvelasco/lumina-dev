@@ -124,7 +124,23 @@ install_vscodium() {
 configure_marketplace() {
     echo -e "${AZUL}🔌 Configurando acesso ao Microsoft Marketplace...${RESET}"
 
-    # Detecta o diretório do product.json conforme a distro
+    # --- Configura product.json local (tem prioridade sobre o do sistema) ---
+    local local_product="$HOME/.config/VSCodium/product.json"
+    mkdir -p "$HOME/.config/VSCodium"
+
+    cat <<'EOF' > "$local_product"
+{
+  "extensionsGallery": {
+    "serviceUrl": "https://marketplace.visualstudio.com/_apis/public/gallery",
+    "itemUrl": "https://marketplace.visualstudio.com/items",
+    "cacheUrl": "https://vscode.blob.core.windows.net/gallery/index",
+    "controlUrl": ""
+  }
+}
+EOF
+    echo -e "${VERDE}✅ Marketplace configurado em ${local_product}.${RESET}"
+
+    # --- Configura também o product.json do sistema como fallback ---
     local product_json=""
     local candidates=(
         "/usr/share/codium/resources/app/product.json"
@@ -139,31 +155,23 @@ configure_marketplace() {
         fi
     done
 
-    if [[ -z "$product_json" ]]; then
-        echo -e "${VERMELHO}❌ product.json não encontrado. Marketplace não configurado.${RESET}"
-        echo -e "${AMARELO}   Localize o arquivo manualmente e adicione a configuração de extensionsGallery.${RESET}"
-        return 1
-    fi
+    if [[ -n "$product_json" ]]; then
+        local backup
+        backup="${product_json}.bak.$(date +%Y%m%d%H%M%S)"
+        sudo cp "$product_json" "$backup"
 
-    # Backup do product.json original
-    local backup
-    backup="${product_json}.bak.$(date +%Y%m%d%H%M%S)"
-    sudo cp "$product_json" "$backup"
-    echo -e "${AZUL}💾 Backup salvo em: ${backup}${RESET}"
-
-    # Injeta a configuração do Marketplace usando Python (disponível em todas as distros)
-    sudo python3 - <<PYEOF
-import json, sys
+        sudo python3 - <<PYEOF
+import json
 
 path = "$product_json"
-
 with open(path, 'r') as f:
     data = json.load(f)
 
 data['extensionsGallery'] = {
     "serviceUrl": "https://marketplace.visualstudio.com/_apis/public/gallery",
+    "itemUrl": "https://marketplace.visualstudio.com/items",
     "cacheUrl": "https://vscode.blob.core.windows.net/gallery/index",
-    "itemUrl": "https://marketplace.visualstudio.com/items"
+    "controlUrl": ""
 }
 
 with open(path, 'w') as f:
@@ -171,13 +179,7 @@ with open(path, 'w') as f:
 
 print("OK")
 PYEOF
-
-    if [[ $? -eq 0 ]]; then
-        echo -e "${VERDE}✅ Microsoft Marketplace configurado em ${product_json}.${RESET}"
-    else
-        echo -e "${VERMELHO}❌ Falha ao configurar o Marketplace. Restaurando backup...${RESET}"
-        sudo cp "$backup" "$product_json"
-        return 1
+        echo -e "${VERDE}✅ Marketplace configurado também em ${product_json}.${RESET}"
     fi
 }
 
@@ -189,14 +191,14 @@ install_extensions() {
 
     local extensions=(
         # IA
-        "google.gemini-code-assist"
+        "Google.geminicodeassist"
         # PHP / Moodle
         "bmewburn.vscode-intelephense-client"
-        "mehedi-hassan.php-namespace-resolver"
+        "MehediDracula.php-namespace-resolver"
         "imgildev.vscode-moodle-snippets"
-        "fischerman.mdlcode"
+        "LMSCloud.mdlcode"
         "junstyle.php-cs-fixer"
-        "terryfly.vscode-mustache"
+        "dawhite.mustache"
         # Docker & Remote
         "ms-azuretools.vscode-docker"
         "ms-vscode-remote.remote-containers"
@@ -269,8 +271,7 @@ apply_settings() {
 
     cat <<'EOF' > "$CONFIG_FILE"
 {
-    "telemetry.enableTelemetry": false,
-    "telemetry.enableCrashReporter": false,
+    "telemetry.telemetryLevel": "off",
     "workbench.colorTheme": "JetBrains New UI Extended",
     "workbench.iconTheme": "jetbrains-file-icons-extended",
     "editor.fontFamily": "'JetBrains Mono', 'Fira Code', monospace",
@@ -293,7 +294,9 @@ apply_settings() {
     "docker.commands.build": "docker build",
     "docker.commands.run": "docker run",
     "docker.commands.composeUp": "docker-compose up -d",
-    "editor.minimap.enabled": false
+    "editor.minimap.enabled": false,
+    "geminicodeassist.enable": true,
+    "geminicodeassist.inlineSuggest.enable": true
 }
 EOF
 
